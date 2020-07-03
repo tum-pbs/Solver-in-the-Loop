@@ -1,8 +1,7 @@
 # Solver-in-the-Loop
 
-This is the source code repository for our paper
-["Solver-in-the-Loop: Learning from Differentiable Physics to Interact with Iterative PDE-Solvers"](https://github.com/tum-pbs/Solver-in-the-Loop),
-stay tuned...
+This is the source code repository for the paper
+["Solver-in-the-Loop: Learning from Differentiable Physics to Interact with Iterative PDE-Solvers"](http://arxiv.org/abs/2007.00016) by Kiwon Um, Raymond (Yun) Fei, Philipp Holl, Robert Brand, and Nils Thuerey.
 
 ![3D Unsteady Wake Flow: Source vs Learned Correction vs Reference](resources/SoL-karman-3d-sideBySide.gif)
 
@@ -20,13 +19,60 @@ Finding accurate solutions to partial differential equations (PDEs) is a crucial
 - [TensorFlow](https://www.tensorflow.org/); *tested with 1.15*
 - [PhiFlow](https://github.com/tum-pbs/PhiFlow); *tested with commit-4f5e678*
 
-**Running tests**
+We recommend installing via pip, e.g., with `pip install tensorflow-gpu==1.15 phiflow`.
 
-Please find Makefile in each folder. A set of targets is provided for each scenario.
-For example, in karman-2d, you can generate data sets, train a model, and apply as follows:
+**Running the Code**
+
+A makefile is included in a folder of each scenario, and a set of targets is provided. 
+Running the targets one after another will generate training and test data, train a model, and apply it 
+to the test cases.
+
+For now, the unsteady wake flow scenario in two dimensions (karman-2d/) is included in this repository.
+(The others will follow later on.)
+
+**Unsteady Wake Flow in 2D**
+
+For karman-2d, you can first generate data sets, for training and testing respectively, by running:
 ```
-make karman-fdt-hires-set      # Genrate traning data set
-make karman-fdt-hires-testset  # Genrate test data set
+make karman-fdt-hires-set      # Generate traning data set
+make karman-fdt-hires-testset  # Generate test data set
+```
+
+This will create 1000 time steps of training data for six reynolds numbers, and test data sets for 
+five different reynolds numbers. All are computed in *reference* space, with a higher resolution.
+An example is shown below.
+
+![Unsteady Wake Flow in 2D, training data](resources/karman-2d-training-ref.jpg)
+
+The following command uses the training data to train a SOL-32 model, i.e., one that's 
+trained with 32 steps of differentiable physics in each ADAM iteration. 
+```
 make karman-fdt-sol32          # Train a model
+```
+
+Here the "magic" happens following line 397 of *karman_train.py* in the loop over `msteps`, which controls the number of time steps computed in each iteration. The call to `simulator_lo.step()` constructs a tensorflow graph for the modified incompressible fluid solver from phiflow. Each `sess.run()` call in line 500 executes the full graph for a mini-batch, and back-propagates the error via the differentiable phiflow operators.
+
+Once the model is trained, you can apply it to the test data via:
+```
 make karman-fdt-sol32/run_test # Run test
 ```
+This generates sequences of .npz files for velocity and a transported marker density, which you can visualize with your favourite numpy tools. Below you can find an example output, showing unmodified source at the top, the corrected SOL-32 version in the middle, and the reference at the bottom.
+
+![Unsteady Wake Flow in 2D, test result](resources/karman-2d-test.jpg)
+
+The NON model discussed in our paper can be trained via *karman-fdt-non*. The makefile additionally contains *-pre* targets to compute the PRE training data mentioned in the paper, and train a corresponding model. 
+
+
+# Closing Remarks
+
+If you find the approach useful, please cite our paper via:
+```
+@article{um2020sol,
+  title="{Solver-in-the-Loop: Learning from Differentiable Physics to Interact with Iterative PDE-Solvers}",
+  author={Um, Kiwon and Fei, Yun and Brand, Robert and Holl, Philipp and Thuerey, Nils},
+  journal={arXiv preprint arXiv:2007.00016},
+  year={2020}
+}
+```
+
+Contact us if you have questions or suggestions.
