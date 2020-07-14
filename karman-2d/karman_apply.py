@@ -69,7 +69,7 @@ class KarmanFlow(IncompressibleFlow):
 
     def step(self, smoke, re, res, velBCy, velBCyMask, dt=1.0, gravity=Gravity()):
         # apply viscosity
-        alpha = 1.0/re * res * res
+        alpha = 1.0/re * dt * res * res
 
         cx = diffuse(CenteredGrid(smoke.velocity.data[1].data), alpha)
         cy = diffuse(CenteredGrid(smoke.velocity.data[0].data), alpha)

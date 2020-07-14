@@ -75,4 +75,6 @@ If you find the approach useful, please cite our paper via:
 }
 ```
 
-Contact us if you have questions or suggestions.
+This work is supported by the ERC Starting Grant realFlow (StG-2015-637014).
+
+Feel free to contact us if you have questions or suggestions.
