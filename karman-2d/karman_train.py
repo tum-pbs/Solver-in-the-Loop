@@ -209,12 +209,14 @@ class PhifDataset():
             self.printFn('Pre-processing: Loading data from {} = {} and save down-scaled data'.format(dirpath, self.dataSims))
             for j,asim in enumerate(self.dataSims):
                 for i in range(num_frames):
-                    d = downDen(read_zipped_array(self.pathsDen[j][i]))
-                    v = downVel(read_zipped_array(self.pathsVel[j][i]))
-                    write_zipped_array(self.filenameToDownscaled(self.pathsDen[j][i]), d)
-                    write_zipped_array(self.filenameToDownscaled(self.pathsVel[j][i]), v)
-                    self.printFn('Wrote {}'.format(self.filenameToDownscaled(self.pathsDen[j][i])))
-                    self.printFn('Wrote {}'.format(self.filenameToDownscaled(self.pathsVel[j][i])))
+                    if not os.path.isfile(self.filenameToDownscaled(self.pathsDen[j][i])):
+                        d = downDen(read_zipped_array(self.pathsDen[j][i]))
+                        write_zipped_array(self.filenameToDownscaled(self.pathsDen[j][i]), d)
+                        self.printFn('Wrote {}'.format(self.filenameToDownscaled(self.pathsDen[j][i])))
+                    if not os.path.isfile(self.filenameToDownscaled(self.pathsVel[j][i])):
+                        v = downVel(read_zipped_array(self.pathsVel[j][i]))
+                        write_zipped_array(self.filenameToDownscaled(self.pathsVel[j][i]), v)
+                        self.printFn('Wrote {}'.format(self.filenameToDownscaled(self.pathsVel[j][i])))
 
         self.printFn('Preload: Loading data from {} = {}'.format(dirpath, self.dataSims))
         self.dataPreloaded = {  # dataPreloaded['sim_key'][step #][0=density, 1=velocity]

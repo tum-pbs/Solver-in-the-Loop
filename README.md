@@ -56,11 +56,11 @@ Once the model is trained, you can apply it to the test data via:
 ```
 make karman-fdt-sol32/run_test # Run test
 ```
-This generates sequences of .npz files for velocity and a transported marker density, which you can visualize with your favourite numpy tools. Below you can find an example output, showing unmodified source at the top, the corrected SOL-32 version in the middle, and the reference at the bottom.
+This generates sequences of .npz files for velocity and a transported marker density in *karman-fdt-sol32/run_test/sim_00000n*, which you can visualize with your favourite numpy tools. Below you can find an example output, showing unmodified source at the top, the corrected SOL-32 version in the middle, and the reference at the bottom.
 
 ![Unsteady Wake Flow in 2D, test result](resources/karman-2d-test.jpg)
 
-The NON model discussed in our paper can be trained via *karman-fdt-non*. The makefile additionally contains *-pre* targets to compute the PRE training data mentioned in the paper, and train a corresponding model. 
+The NON model discussed in our paper can be trained via the target *karman-fdt-non*. The makefile additionally contains *-pre* targets to compute the PRE training data mentioned in the paper, and train a corresponding model. 
 
 
 # Closing Remarks
