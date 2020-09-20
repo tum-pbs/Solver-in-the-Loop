@@ -27,7 +27,7 @@ A makefile is included in a folder of each scenario, and a set of targets is pro
 Running the targets one after another will generate training and test data, train a model, and apply it 
 to the test cases.
 
-For now, the unsteady wake flow scenario in two dimensions (karman-2d/) is included in this repository.
+For now, the unsteady wake flow (karman-2d/) and forced advection-diffusion (burgers/) scenarios in two dimensions are included in this repository.
 (The others will follow later on.)
 
 **Unsteady Wake Flow in 2D**
@@ -62,6 +62,9 @@ This generates sequences of .npz files for velocity and a transported marker den
 
 The NON model discussed in our paper can be trained via the target *karman-fdt-non*. The makefile additionally contains *-pre* targets to compute the PRE training data mentioned in the paper, and train a corresponding model. 
 
+**Forced Advection-Diffusion in 2D**
+
+Similar to the unsteady wake flow scenario, you can use the Makefile targets.
 
 # Closing Remarks
 
