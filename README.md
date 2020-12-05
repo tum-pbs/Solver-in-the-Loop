@@ -84,4 +84,4 @@ This work is supported by the ERC Starting Grant realFlow (StG-2015-637014).
 
 Feel free to contact us if you have questions or suggestions.
 
-![Main paper teaser](documentation/figures/SoL-teaser-github-notitle.jpeg)
+![Main paper teaser](resources/SoL-teaser-github-notitle.jpeg)
