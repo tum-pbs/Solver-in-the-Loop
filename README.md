@@ -75,7 +75,7 @@ If you find the approach useful, please cite our paper via:
 @article{um2020sol,
   title="{Solver-in-the-Loop: Learning from Differentiable Physics to Interact with Iterative PDE-Solvers}",
   author={Um, Kiwon and Fei, Yun and Brand, Robert and Holl, Philipp and Thuerey, Nils},
-  journal={arXiv preprint arXiv:2007.00016},
+  journal={Advances in Neural Information Processing Systems},
   year={2020}
 }
 ```
