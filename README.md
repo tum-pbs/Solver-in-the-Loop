@@ -1,7 +1,7 @@
 # Solver-in-the-Loop
 
 This is the source code repository for the NeurIPS'20 paper
-["Solver-in-the-Loop: Learning from Differentiable Physics to Interact with Iterative PDE-Solvers"](http://arxiv.org/abs/2007.00016) by Kiwon Um, Raymond (Yun) Fei, Philipp Holl, Robert Brand, and Nils Thuerey.
+["Solver-in-the-Loop: Learning from Differentiable Physics to Interact with Iterative PDE-Solvers"](http://arxiv.org/abs/2007.00016) by Kiwon Um, Robert Brand, Yun (Raymond) Fei, Philipp Holl, Nils Thuerey.
 
 Additional information: [project page](https://ge.in.tum.de/publications/2020-um-solver-in-the-loop/), [NeurIPS 2020 page](https://proceedings.neurips.cc/paper/2020/hash/43e4e6a6f341e00671e123714de019a8-Abstract.html).
 
