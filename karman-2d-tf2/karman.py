@@ -49,19 +49,16 @@ sys.argv += ['--' + p for p in params if isinstance(params[p], bool) and params[
 pargs = parser.parse_args()
 params.update(vars(pargs))
 
-# os.environ['CUDA_VISIBLE_DEVICES'] = params['gpu']
+os.environ['CUDA_VISIBLE_DEVICES'] = params['gpu']
 
-# if params['cuda']: from phi.tf.tf_cuda_pressuresolver import CUDASolver
+if params['cuda']: from phi.tf.tf_cuda_pressuresolver import CUDASolver
 
 from phi.tf.flow import *
-# import phi.tf.util
 
-# config = tf.compat.v1.ConfigProto()
-# config.gpu_options.allow_growth = True  # dynamically grow the memory used on the GPU
-# tf_session = tf.Session(config=config)
-tf_session = tf.Session()
+config = tf.compat.v1.ConfigProto()
+config.gpu_options.allow_growth = True  # dynamically grow the memory used on the GPU
+tf_session = tf.Session(config=config)
 
-# import tensorflow as tf
 from tensorflow import keras
 
 random.seed(params['seed'])
