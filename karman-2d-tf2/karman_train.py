@@ -385,8 +385,8 @@ if (params['train'] is None):
     exit(0)
 
 scene = Scene.create(params['train'], count=params['sbatch'], mkdir=False, copy_calling_script=False)
-sess = Session(scene, session=tf_session)
-tf.compat.v1.keras.backend.set_session(tf_session)
+sess = tf_session  #Session(scene, session=tf_session)
+sess.run(tf.compat.v1.global_variable_initializer())  # ltf.compat.v1.keras.backend.set_session(tf_session)
 
 with tf.name_scope('training') as scope:
     netModel = eval('model_{}'.format(params['model']))
