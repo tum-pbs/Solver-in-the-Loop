@@ -11,7 +11,18 @@
 #
 # ----------------------------------------------------------------------------
 
-import os, sys, logging, argparse, pickle, glob, random, distutils.dir_util
+import argparse
+import distutils.dir_util
+import glob
+import logging
+import os
+import pickle
+import random
+import sys
+
+from phi.tf.flow import *
+from tensorflow import keras
+
 
 log = logging.getLogger()
 log.addHandler(logging.StreamHandler())
@@ -50,13 +61,11 @@ os.environ['CUDA_VISIBLE_DEVICES'] = params['gpu']
 
 if params['cuda']: from phi.tf.tf_cuda_pressuresolver import CUDASolver
 
-from phi.tf.flow import *
 
 config = tf.compat.v1.ConfigProto()
 config.gpu_options.allow_growth = True  # dynamically grow the memory used on the GPU
 tf_session = tf.Session(config=config)
 
-from tensorflow import keras
 
 if params['resume']>0 and params['log']:
     params['log'] = os.path.splitext(params['log'])[0] + '_resume{:04d}'.format(params['resume']) + os.path.splitext(params['log'])[1]
