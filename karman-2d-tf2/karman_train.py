@@ -401,7 +401,6 @@ if (params['train'] is None):
 
 scene = Scene.create(params['train'], count=params['sbatch'], mkdir=False, copy_calling_script=False)
 sess = tf_session  #Session(scene, session=tf_session)
-sess.run(tf.compat.v1.global_variable_initializer())  # ltf.compat.v1.keras.backend.set_session(tf_session)
 
 with tf.name_scope('training') as scope:
     netModel = eval('model_{}'.format(params['model']))
@@ -472,7 +471,7 @@ with tf.name_scope('training') as scope:
             train_step = opt.minimize(total_loss)
 
 model.summary(print_fn=log.info)
-sess.initialize_variables()
+#sess.initialize_variables()
 
 if params['pretf']:
     log.info('load a pre-trained model: {}'.format(params['pretf']))
@@ -496,6 +495,7 @@ tf_writer_tr = tf.compat.v1.summary.FileWriter(params['tf']+'/summary/training')
 if params['resume'] < 1:
     tf_writer_tr.add_graph(sess.graph)
 
+sess.run(tf.compat.v1.global_variable_initializer())  # ltf.compat.v1.keras.backend.set_session(tf_session)
 current_lr = params['lr']
 total_step_count = 0
 for epoch_idx in range(params['epochs']):  # training
