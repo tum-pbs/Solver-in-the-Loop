@@ -59,7 +59,8 @@ params.update(vars(pargs))
 
 os.environ['CUDA_VISIBLE_DEVICES'] = params['gpu']
 
-if params['cuda']: from phi.tf.tf_cuda_pressuresolver import CUDASolver
+if params['cuda']:
+    from phi.tf.tf_cuda_pressuresolver import CUDASolver
 
 
 config = tf.compat.v1.ConfigProto()
@@ -279,7 +280,7 @@ class PhifDataset():
         self.numOfSteps = self.numOfFrames - exclude_tail
         simSteps = [(asim, self.dataFrms[i][0:(len(self.dataFrms[i])-exclude_tail)]) for i,asim in enumerate(self.dataSims)]
         sim_step_pair = []
-        for i,_ in enumerate(simSteps):
+        for i, _ in enumerate(simSteps):
             sim_step_pair += [(i, astep) for astep in simSteps[i][1]]  # (sim_idx, step) ...
 
         if shuffle_data: random.shuffle(sim_step_pair)
@@ -358,7 +359,8 @@ dataset = PhifDataset(
     print_fn=log.info,
     skip_preprocessing=params['skip_ds']
 )
-if params['only_ds']: exit(0)
+if params['only_ds']:
+    exit(0)
 
 if params['pretf']:
     with open(os.path.dirname(params['pretf'])+'/stats.pickle', 'rb') as f: ld_stats = pickle.load(f)
@@ -371,7 +373,7 @@ if params['resume']>0:
 
 Rlo = list(dataset.resolution)
 
-st_co =   Fluid(Domain(resolution=Rlo, box=box[0:params['len']*2, 0:params['len']], boundaries=OPEN), buoyancy_factor=0, batch_size=params['sbatch'])
+st_co = Fluid(Domain(resolution=Rlo, box=box[0:params['len']*2, 0:params['len']], boundaries=OPEN), buoyancy_factor=0, batch_size=params['sbatch'])
 st_gt = [Fluid(Domain(resolution=Rlo, box=box[0:params['len']*2, 0:params['len']], boundaries=OPEN), buoyancy_factor=0, batch_size=params['sbatch']) for _ in range(params['msteps'])]
 
 # velocity BC
@@ -383,10 +385,14 @@ velBCy = vn
 velBCyMask = np.copy(vn)     # warning, only works for 1s, otherwise setup/scale
 
 with tf.name_scope('input') as scope:
-    with tf.name_scope('co') as scope: tf_st_co_in = tf.zeros(shape=st_co.shape)
-    with tf.name_scope('lr') as scope: tf_vr_lr_in = tf.zeros(shape=[], dtype=tf.float32)  # learning rate
-    with tf.name_scope('Re') as scope: tf_st_Re_in = tf.zeros(shape=[params['sbatch']], dtype=tf.float32)  # Reynolds numbers
-    with tf.name_scope('gt') as scope: tf_st_gt_in = [tf.zeros(shape=st_co.shape) for _ in range(params['msteps'])]
+    with tf.name_scope('co') as scope:
+        tf_st_co_in = tf.zeros(shape=st_co.shape)
+    with tf.name_scope('lr') as scope:
+        tf_vr_lr_in = tf.zeros(shape=[], dtype=tf.float32)  # learning rate
+    with tf.name_scope('Re') as scope:
+        tf_st_Re_in = tf.zeros(shape=[params['sbatch']], dtype=tf.float32)  # Reynolds numbers
+    with tf.name_scope('gt') as scope:
+        tf_st_gt_in = [tf.zeros(shape=st_co.shape) for _ in range(params['msteps'])]
 
 if (params['train'] is None):
     log.info(params['train'])
@@ -442,7 +448,8 @@ with tf.name_scope('training') as scope:
             for i in range(params['msteps'])
         ]
         loss = tf.reduce_sum(loss_steps)/params['msteps']
-        for i,a_step_loss in enumerate(loss_steps): tf.compat.v1.summary.scalar(name='loss_step{:02d}'.format(i), tensor=a_step_loss)
+        for i, a_step_loss in enumerate(loss_steps):
+            tf.compat.v1.summary.scalar(name='loss_step{:02d}'.format(i), tensor=a_step_loss)
         tf.compat.v1.summary.scalar(name='sum_step_loss', tensor=loss)
 
         total_loss = loss
@@ -486,7 +493,8 @@ else:
 
 tf_summary_merged = tf.compat.v1.summary.merge_all()
 tf_writer_tr = tf.compat.v1.summary.FileWriter(params['tf']+'/summary/training')
-if params['resume']<1: tf_writer_tr.add_graph(sess.graph)
+if params['resume'] < 1:
+    tf_writer_tr.add_graph(sess.graph)
 
 current_lr = params['lr']
 total_step_count = 0
