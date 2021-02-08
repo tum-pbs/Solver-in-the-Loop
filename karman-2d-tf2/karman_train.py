@@ -198,9 +198,9 @@ class KarmanFlow(IncompressibleFlow):
 class PhifDataset():
     def __init__(self, dirpath, num_frames, num_sims=None, batch_size=1, print_fn=print, skip_preprocessing=False):
         self.dataSims      = sorted(glob.glob(dirpath + '/sim_0*'))[0:num_sims]
-        self.pathsDen      = [ sorted(glob.glob(asim + '/dens_0*.npz')) for asim in self.dataSims ]
-        self.pathsVel      = [ sorted(glob.glob(asim + '/velo_0*.npz')) for asim in self.dataSims ]
-        self.dataFrms      = [ np.arange(num_frames) for _ in self.dataSims ]  # NOTE: may contain different numbers of frames
+        self.pathsDen      = [sorted(glob.glob(asim + '/dens_0*.npz')) for asim in self.dataSims]
+        self.pathsVel      = [sorted(glob.glob(asim + '/velo_0*.npz')) for asim in self.dataSims]
+        self.dataFrms      = [np.arange(num_frames) for _ in self.dataSims]  # NOTE: may contain different numbers of frames
         self.batchSize     = batch_size
         self.epoch         = None
         self.epochIdx      = 0
@@ -257,7 +257,7 @@ class PhifDataset():
         for asim in self.dataSims:
             with open(asim+'/params.pickle', 'rb') as f:
                 sim_params = pickle.load(f)
-                self.extConstChannelPerSim[asim] = [ sim_params['re'] ]  # Reynolds Nr.
+                self.extConstChannelPerSim[asim] = [sim_params['re']]  # Reynolds Nr.
 
         self.dataStats.update({
             'ext.std': [
@@ -277,13 +277,13 @@ class PhifDataset():
 
     def newEpoch(self, exclude_tail=0, shuffle_data=True):
         self.numOfSteps = self.numOfFrames - exclude_tail
-        simSteps = [ (asim, self.dataFrms[i][0:(len(self.dataFrms[i])-exclude_tail)]) for i,asim in enumerate(self.dataSims) ]
+        simSteps = [(asim, self.dataFrms[i][0:(len(self.dataFrms[i])-exclude_tail)]) for i,asim in enumerate(self.dataSims)]
         sim_step_pair = []
         for i,_ in enumerate(simSteps):
-            sim_step_pair += [ (i, astep) for astep in simSteps[i][1] ]  # (sim_idx, step) ...
+            sim_step_pair += [(i, astep) for astep in simSteps[i][1]]  # (sim_idx, step) ...
 
         if shuffle_data: random.shuffle(sim_step_pair)
-        self.epoch = [ list(sim_step_pair[i*self.numOfSteps:(i+1)*self.numOfSteps]) for i in range(self.batchSize*self.numOfBatchs) ]
+        self.epoch = [list(sim_step_pair[i*self.numOfSteps:(i+1)*self.numOfSteps]) for i in range(self.batchSize*self.numOfBatchs)]
         self.epochIdx += 1
         self.batchIdx = 0
         self.stepIdx = 0
@@ -372,7 +372,7 @@ if params['resume']>0:
 Rlo = list(dataset.resolution)
 
 st_co =   Fluid(Domain(resolution=Rlo, box=box[0:params['len']*2, 0:params['len']], boundaries=OPEN), buoyancy_factor=0, batch_size=params['sbatch'])
-st_gt = [ Fluid(Domain(resolution=Rlo, box=box[0:params['len']*2, 0:params['len']], boundaries=OPEN), buoyancy_factor=0, batch_size=params['sbatch']) for _ in range(params['msteps']) ]
+st_gt = [Fluid(Domain(resolution=Rlo, box=box[0:params['len']*2, 0:params['len']], boundaries=OPEN), buoyancy_factor=0, batch_size=params['sbatch']) for _ in range(params['msteps'])]
 
 # velocity BC
 vn = np.zeros(st_co.velocity.data[0].data.shape)  # st.velocity.data[0] is considered as the velocity field in y axis!
@@ -478,7 +478,7 @@ if params['inittf']:
     model.set_weights(ld_model.get_weights())
 
 if params['resume']<1:
-    [ params['tf'] and distutils.dir_util.mkpath(params['tf']) ]
+    [params['tf'] and distutils.dir_util.mkpath(params['tf'])]
     with open(params['tf']+'/dataStats.pickle', 'wb') as f: pickle.dump(dataset.dataStats, f)
 else:
     ld_model = keras.models.load_model(params['tf']+'/model_epoch{:04d}.h5'.format(params['resume']))
@@ -503,7 +503,7 @@ for j in range(params['epochs']):  # training
             adata = dataset.getData(consecutive_frames=params['msteps'], with_skip=1)
             re_nr = adata[2]    # Reynolds numbers
             st_co = st_co.copied_with(density=adata[0][0], velocity=adata[1][0])
-            st_gt = [ st_gt[k].copied_with(density=adata[0][k+1], velocity=adata[1][k+1]) for k in range(params['msteps']) ]
+            st_gt = [st_gt[k].copied_with(density=adata[0][k+1], velocity=adata[1][k+1]) for k in range(params['msteps'])]
 
             my_feed_dict = { tf_st_co_in: st_co, tf_st_Re_in: re_nr, tf_vr_lr_in: current_lr }
             my_feed_dict.update(zip(tf_st_gt_in, st_gt))
