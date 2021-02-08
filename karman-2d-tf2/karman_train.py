@@ -492,34 +492,42 @@ current_lr = params['lr']
 total_step_count = 0
 for epoch_idx in range(params['epochs']):  # training
     dataset.newEpoch(exclude_tail=params['msteps'])
-    if j<params['resume']:
-        log.info('resume: skipping {} epoch'.format(j+1))
-        i_st += dataset.numOfSteps*dataset.numOfBatchs
+    if epoch_idx < params['resume']:
+        log.info(f'resume: skipping {epoch_idx+1} epoch')
+        total_step_count += dataset.numOfSteps*dataset.numOfBatchs
         continue
 
-    current_lr = lr_schedule(j, current_lr) if params['adplr'] else params['lr']
+    current_lr = lr_schedule(epoch_idx, current_lr) if params['adplr'] else params['lr']
     for batch_idx in range(dataset.numOfBatchs):   # for each batch
         for step_idx in range(dataset.numOfSteps):  # for each step
             adata = dataset.getData(consecutive_frames=params['msteps'], with_skip=1)
             re_nr = adata[2]    # Reynolds numbers
             st_co = st_co.copied_with(density=adata[0][0], velocity=adata[1][0])
-            st_gt = [st_gt[k].copied_with(density=adata[0][k+1], velocity=adata[1][k+1]) for k in range(params['msteps'])]
+            st_gt = [st_gt[k].copied_with(density=adata[0][k+1], velocity=adata[1][k+1])
+                     for k in range(params['msteps'])]
 
-            my_feed_dict = { tf_st_co_in: st_co, tf_st_Re_in: re_nr, tf_vr_lr_in: current_lr }
+            my_feed_dict = {
+                tf_st_co_in: st_co,
+                tf_st_Re_in: re_nr,
+                tf_vr_lr_in: current_lr
+            }
             my_feed_dict.update(zip(tf_st_gt_in, st_gt))
             summary, _, l2 = sess.run([tf_summary_merged, train_step, total_loss], my_feed_dict)
 
             tf_writer_tr.add_summary(summary, total_step_count)
             total_step_count += 1
 
-            log.info('epoch {:03d}/{:03d}, batch {:03d}/{:03d}, step {:04d}/{:04d}: loss={}'.format(
-                epoch_idx+1, params['epochs'], batch_idx+1, dataset.numOfBatchs, step_idx+1, dataset.numOfSteps, l2
-            ))
+            log.info(", ".join([
+                f"epoch {epoch_idx+1:03d}/{params['epochs']:03d}",
+                f"batch {batch_idx+1:03d}/{dataset.numOfBatchs:03d}",
+                f"step {step_idx+1:04d}/{dataset.numOfSteps:04d}: loss={l2}"
+            ]))
             dataset.nextStep()
 
         dataset.nextBatch()
 
-    if epoch_idx%10==9: model.save(params['tf']+'/model_epoch{:04d}.h5'.format(epoch_idx+1))
+    if epoch_idx % 10 == 9:
+        model.save(params['tf']+f'/model_epoch{epoch_idx+1:04d}.h5')
 
 tf_writer_tr.close()
 model.save(params['tf']+'/model.h5')
