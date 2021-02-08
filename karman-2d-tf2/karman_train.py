@@ -383,10 +383,10 @@ velBCy = vn
 velBCyMask = np.copy(vn)     # warning, only works for 1s, otherwise setup/scale
 
 with tf.name_scope('input') as scope:
-    with tf.name_scope('co') as scope: tf_st_co_in =   placeholder(st_co.shape) #phi.tf.util.placeholder_like(st_co)
-    with tf.name_scope('lr') as scope: tf_vr_lr_in =   tf.placeholder(tf.float32, shape=[])  # learning rate
-    with tf.name_scope('Re') as scope: tf_st_Re_in =   tf.placeholder(tf.float32, shape=[params['sbatch']])  # Reynolds numbers
-    with tf.name_scope('gt') as scope: tf_st_gt_in = [ placeholder(st_co.shape) for _ in range(params['msteps']) ] #[ phi.tf.util.placeholder_like(st_co) for _ in range(params['msteps']) ]
+    with tf.name_scope('co') as scope: tf_st_co_in = tf.zeros(shape=st_co.shape)
+    with tf.name_scope('lr') as scope: tf_vr_lr_in = tf.zeros(shape=[], dtype=tf.float32)  # learning rate
+    with tf.name_scope('Re') as scope: tf_st_Re_in = tf.zeros(shape=[params['sbatch']], dtype=tf.float32)  # Reynolds numbers
+    with tf.name_scope('gt') as scope: tf_st_gt_in = [tf.zeros(shape=st_co.shape) for _ in range(params['msteps'])]
 
 if (params['train'] is None):
     log.info(params['train'])
