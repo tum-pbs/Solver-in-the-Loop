@@ -402,7 +402,8 @@ with tf.name_scope('training') as scope:
     model = netModel(to_feature(tf_st_co_in, tf_st_Re_in))
 
     with tf.name_scope('corre') as scope:
-        tf_st_co_prd, tf_cv_md = [], []
+        tf_st_co_prd = []
+        tf_cv_md = []
         for i in range(params['msteps']):
             with tf.name_scope('step_w_pred') as scope:
                 with tf.name_scope('step') as scope:
