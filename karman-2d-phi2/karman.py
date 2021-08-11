@@ -64,14 +64,7 @@ tf.random.set_seed(params['seed'])
 class KarmanFlow():
     def __init__(self, domain):
         self.domain = domain
-
-        shape_v = self.domain.staggered_grid(0).vector['y'].shape
-        vel_yBc = np.zeros(shape_v.sizes)
-        vel_yBc[0:2, 0:vel_yBc.shape[1]-1] = 1.0
-        vel_yBc[0:vel_yBc.shape[0], 0:1] = 1.0
-        vel_yBc[0:vel_yBc.shape[0], -1:] = 1.0
-        self.vel_yBc = math.tensor(vel_yBc, shape_v)
-        self.vel_yBcMask = math.tensor(np.copy(vel_yBc), shape_v) # warning, only works for 1s, otherwise setup/scale
+        self.vel_yBcMask = self.domain.staggered_grid(HardGeometryMask(Box[:5, :]) )    
 
         self.inflow = self.domain.scalar_grid(Box[5:10, 25:75])         # TODO: scale with domain if necessary!
         self.obstacles = [Obstacle(Sphere(center=[50, 50], radius=10))] # TODO: scale with domain if necessary!
@@ -80,14 +73,9 @@ class KarmanFlow():
         velocity = velocity_in
         density = density_in
 
-        # apply viscosity
+        # apply viscosity and boundary conditions
         velocity = phi.flow.diffuse.explicit(field=velocity, diffusivity=1.0/re*dt*res*res, dt=dt)
-        vel_x = velocity.vector['x']
-        vel_y = velocity.vector['y']
-
-        # apply velocity BCs, only y for now; velBCy should be pre-multiplied
-        vel_y = vel_y*(1.0 - self.vel_yBcMask) + self.vel_yBc
-        velocity = self.domain.staggered_grid(phi.math.stack([vel_y.data, vel_x.data], channel('vector')))
+        velocity = velocity*(1.0 - self.vel_yBcMask) + self.vel_yBcMask * (1,0)
 
         pressure = None
         if make_input_divfree:
@@ -120,7 +108,8 @@ log.info('tensorflow-{} ({}, {}); keras-{} ({})'.format(tf.__version__, tf.sysco
 if params['output']:
     with open(os.path.normpath(scene.path)+'/params.pickle', 'wb') as f: pickle.dump(params, f)
 
-domain = Domain(y=params['res']*2, x=params['res'], bounds=Box[0:params['len']*2, 0:params['len']], boundaries=OPEN)
+domain_boundaries = {'x':(phi.physics._boundaries.STICKY,phi.physics._boundaries.STICKY), 'y':(phi.physics._boundaries.OPEN,phi.physics._boundaries.OPEN)}
+domain = Domain(y=params['res']*2, x=params['res'], bounds=Box[0:params['len']*2, 0:params['len']], boundaries=domain_boundaries)
 
 # init density & velocity
 d0 = phi.field.read(params['initdH']).at(domain.scalar_grid()) if params['initdH'] else domain.scalar_grid(0)
@@ -179,3 +168,4 @@ for i in range(1, params['simsteps']):
             save_img(density.data.numpy(density.values.shape.names),    10000., thumb_path + "/dens_{:06d}.png".format(i))                        # shape: [cy, cx]
             save_img(velocity.vector['x'].data.numpy(velocity.vector['x'].values.shape.names), 40000., thumb_path + "/velU_{:06d}.png".format(i)) # shape: [cy, cx+1]
             save_img(velocity.vector['y'].data.numpy(velocity.vector['y'].values.shape.names), 40000., thumb_path + "/velV_{:06d}.png".format(i)) # shape: [cy+1, cx]
+

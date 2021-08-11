@@ -57,11 +57,11 @@ if gpus:
 from tensorflow import keras
 
 def to_feature(dens_vel_grid_array, ext_const_channel):
-    # drop the unused edges of the staggered velocity grid making its dim same to the centered grid's
+    # align the sides the staggered velocity grid making its size the same as the centered grid
     with tf.name_scope('to_feature') as scope:
         return math.stack(
             [
-                dens_vel_grid_array[1].vector['x'].x[:-1].values,         # u
+                math.pad( dens_vel_grid_array[1].vector['x'].values, {'x':(0,1)} , math.extrapolation.ZERO),
                 dens_vel_grid_array[1].vector['y'].y[:-1].values,         # v
                 math.ones(dens_vel_grid_array[0].shape)*ext_const_channel # Re
             ],
@@ -73,41 +73,27 @@ def to_staggered_drop_batch(tf_tensor, domain):
         return domain.staggered_grid(
             math.stack(
                 [
-                    math.tensor(tf.pad(tf_tensor[0, ..., 1], [(0,1), (0,0)]), math.spatial('y, x')),
-                    math.tensor(tf.pad(tf_tensor[0, ..., 0], [(0,0), (0,1)]), math.spatial('y, x')),
-                ],
-                math.channel('vector')
+                    math.tensor(tf.pad(tf_tensor[0, :,:, 1], [(0,1), (0,0)]), math.spatial('y, x')), # v
+                    math.tensor(tf_tensor[0, :,:-1, 0], math.spatial('y, x')), # u 
+                ], math.channel('vector')
             )
         )
-
 
 class KarmanFlow():
     def __init__(self, domain):
         self.domain = domain
-
-        shape_v = self.domain.staggered_grid(0).vector['y'].shape
-        vel_yBc = np.zeros(shape_v.sizes)
-        vel_yBc[0:2, 0:vel_yBc.shape[1]-1] = 1.0
-        vel_yBc[0:vel_yBc.shape[0], 0:1] = 1.0
-        vel_yBc[0:vel_yBc.shape[0], -1:] = 1.0
-        self.vel_yBc = math.tensor(vel_yBc, shape_v)
-        self.vel_yBcMask = math.tensor(np.copy(vel_yBc), shape_v) # warning, only works for 1s, otherwise setup/scale
+        self.vel_yBcMask = self.domain.staggered_grid(HardGeometryMask(Box[:5, :]) )    
 
         self.inflow = self.domain.scalar_grid(Box[5:10, 25:75])         # TODO: scale with domain if necessary!
         self.obstacles = [Obstacle(Sphere(center=[50, 50], radius=10))] # TODO: scale with domain if necessary!
 
-    def step(self, density_in, velocity_in, re, res, buoyancy_factor=0, dt=1.0, make_input_divfree=False, make_output_divfree=True): #, conserve_density=True):
+    def step(self, density_in, velocity_in, re, res, dt=1.0, make_input_divfree=False, make_output_divfree=True): #, conserve_density=True):
         velocity = velocity_in
         density = density_in
 
-        # apply viscosity
+        # apply viscosity and boundary conditions
         velocity = phi.flow.diffuse.explicit(field=velocity, diffusivity=1.0/re*dt*res*res, dt=dt)
-        vel_x = velocity.vector['x']
-        vel_y = velocity.vector['y']
-
-        # apply velocity BCs, only y for now; velBCy should be pre-multiplied
-        vel_y = vel_y*(1.0 - self.vel_yBcMask) + self.vel_yBc
-        velocity = self.domain.staggered_grid(phi.math.stack([vel_y.data, vel_x.data], channel('vector')))
+        velocity = velocity*(1.0 - self.vel_yBcMask) + self.vel_yBcMask * (1,0)
 
         pressure = None
         if make_input_divfree:
@@ -140,7 +126,8 @@ log.info('tensorflow-{} ({}, {}); keras-{} ({})'.format(tf.__version__, tf.sysco
 if params['output']:
     with open(os.path.normpath(scene.path)+'/params.pickle', 'wb') as f: pickle.dump(params, f)
 
-domain  = Domain(y=params['res']*2, x=params['res'], bounds=Box[0:params['len']*2, 0:params['len']], boundaries=OPEN)
+domain_boundaries = {'x':(phi.physics._boundaries.STICKY,phi.physics._boundaries.STICKY), 'y':(phi.physics._boundaries.OPEN,phi.physics._boundaries.OPEN)}
+domain = Domain(y=params['res']*2, x=params['res'], bounds=Box[0:params['len']*2, 0:params['len']], boundaries=domain_boundaries)
 
 # init density & velocity
 d0 = phi.field.read(params['initdH']).at(domain.scalar_grid()) if params['initdH'] else domain.scalar_grid(0)

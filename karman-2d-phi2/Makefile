@@ -48,13 +48,30 @@ karman-fdt-lores-testset: karman.py
 ################################################################################
 # Training models
 
-# SOL-08
+# NON baseline with m=1
+karman-fdt-non: karman_train.py 
+	python $^ --tf $@/tf --log $@/tf/run.log --epochs=100 --lr 0.0001 -r 32 -l 100 -t 500 -s 4 -m 1 -n 6 -b 3 --seed 0 --gpu '0'  \
+		--train karman-fdt-hires-set
+
+
+# SOL-08, later on add "--skip-ds" option to speed up loading
 karman-fdt-sol08: karman_train.py # NOTE: don't test with "-n 1" (normalization problem because std(Re)=0!)
-	python $^ --tf $@/tf --log $@/tf/run.log --epochs=100 --lr 0.0001 -r 32 -l 100 -t 500 -s 4 -m 8 -n 6 -b 3 --seed 0 --gpu '0' --skip-ds \
+	python $^ --tf $@/tf --log $@/tf/run.log --epochs=100 --lr 0.0001 -r 32 -l 100 -t 500 -s 4 -m 8 -n 6 -b 3 --seed 0 --gpu '0'  \
 		--train karman-fdt-hires-set
 
 ################################################################################
 # Run tests
+
+# NON
+karman-fdt-non/run_test: karman_apply.py
+	for i in `seq 0 1`; do \
+		python $^ -o $@ --thumb \
+			--stats `dirname $@`/tf/dataStats.pickle \
+			--model `dirname $@`/tf/model.h5 --gpu "-1" \
+			--initdH karman-fdt-hires-testset/sim_`printf "%06d" $$i`/dens_001000.npz \
+			--initvH karman-fdt-hires-testset/sim_`printf "%06d" $$i`/velo_001000.npz \
+			-r 32 -l 100 --re `echo $$(( 10000 * 2**($$i+3) * 3 ))` -t 500; \
+	done
 
 # SOL-08
 karman-fdt-sol08/run_test: karman_apply.py
