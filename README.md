@@ -19,9 +19,9 @@ Finding accurate solutions to partial differential equations (PDEs) is a crucial
 **Requirements**
 
 - [TensorFlow](https://www.tensorflow.org/); *tested with 1.15*, *with 2.4 for \*-tf2*, and *with 2.4.1 for \*-phi2*
-- [PhiFlow](https://github.com/tum-pbs/PhiFlow); *tested with commit-4f5e678*, *with commit-3ecdb62 for \*-tf2*, and *with commit-1d292de for \*-phi2*
+- [PhiFlow](https://github.com/tum-pbs/PhiFlow); *master branch tested with commit-4f5e678*, *with commit-3ecdb62 for \*-tf2*, and *with commit-1d292de for \*-phi2*
 
-We recommend installing via pip, e.g., with `pip install tensorflow-gpu==1.15 phiflow`.
+We recommend installing via pip, e.g., with `pip install tensorflow-gpu==1.15 phiflow=1.5.1`.
 
 **Running the Code**
 
